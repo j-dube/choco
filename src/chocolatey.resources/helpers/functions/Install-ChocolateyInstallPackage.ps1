@@ -193,7 +193,7 @@ param(
   }
 
   $installerTypeLower = $fileType.ToLower()
-  if ($installerTypeLower -ne 'msi' -and $installerTypeLower -ne 'exe' -and $installerTypeLower -ne 'msu') {
+  if ($installerTypeLower -ne 'msi' -and $installerTypeLower -ne 'msp' -and $installerTypeLower -ne 'exe' -and $installerTypeLower -ne 'msu') {
     Write-Warning "FileType '$fileType' is unrecognized, using 'exe' instead."
     $fileType = 'exe'
   }
@@ -261,6 +261,18 @@ Pro / Business supports a single, ubiquitous install directory option.
 
   if ($fileType -like 'msi') {
     $msiArgs = "/i `"$fileFullPath`""
+    if ($overrideArguments) {
+      Write-Host "Overriding package arguments with '$additionalInstallArgs' (replacing '$silentArgs')";
+      $msiArgs = "$msiArgs $additionalInstallArgs";
+    } else {
+      $msiArgs = "$msiArgs $silentArgs $additionalInstallArgs";
+    }
+
+    $env:ChocolateyExitCode = Start-ChocolateyProcessAsAdmin "$msiArgs" "$($env:SystemRoot)\System32\msiexec.exe" -validExitCodes $validExitCodes -workingDirectory $workingDirectory
+  }
+
+  if ($fileType -like 'msp') {
+    $msiArgs = "/update `"$fileFullPath`""
     if ($overrideArguments) {
       Write-Host "Overriding package arguments with '$additionalInstallArgs' (replacing '$silentArgs')";
       $msiArgs = "$msiArgs $additionalInstallArgs";
